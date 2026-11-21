@@ -2186,6 +2186,10 @@ function record(res,how){
   ranking(res,how);
   const c0=S.career,pr=c0.promo,heading=pr&&pr.booked&&pr.booked.headline&&!c0.dropped;
   if(heading&&pr.booked.stage==='presale')goWeek();
+  // your own fight on someone else's card takes time too: your signed fighters get their rest
+  // (a show you headline sets a new resting list itself, for whoever fought on it)
+  if(pr&&!heading&&(pr.resting||[]).length){pr.resting=[];
+    $('ovText').innerHTML+='<div class="card" style="text-align:left;color:var(--dim)">😴 While you were in camp, your fighters got their rest. They can all fight on your next card.</div>';}
   if(!heading)c0.money+=pay;
   if(c0.history&&c0.history[0])c0.history[0].pay=heading?0:pay;
   if(heading){
