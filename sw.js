@@ -1,7 +1,7 @@
 // Reflex Boxing offline cache.
 // The game files are kept on the phone so the app opens without internet.
 // When you upload a new version, change VERSION so phones fetch the new files.
-const VERSION = 'reflex-boxing-v4';
+const VERSION = 'reflex-boxing-v5';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@500;700&display=swap';

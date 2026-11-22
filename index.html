@@ -693,7 +693,7 @@ const PROMO_STYLE={kane:15,whitlock:2,novak:5,duarte:6,ward:6,kessler:12,varga:6
    a secondary belt +3. Only the biggest earned bonus counts, added to the static one. */
 const PROMO_NAME={delacroix:[14,'son of former champion "Sugar" Ray Delacroix'],salgado:[8,'two-time world title challenger'],
   whitmore:[8,'unbeaten, and backed by the biggest promoter in the sport'],lazarus:[4,'the man who never stays down'],banks:[4,'"the most talented fighter in the division"'],
-  hale:[6,'the redemption tour'],dobbs:[3,'local legend']};
+  hale:[6,'the redemption tour'],dobbs:[3,'local legend'],bg6:[3,'"The Postman": never late, never misses weight, never pulls out']};
 function nameValue(o){const st=PROMO_NAME[o.id],earned=isExChamp(o)?[12,'former world champion']:o.challenger?[5,'former world title challenger']:o.exBelt?[3,'former '+o.exBelt+' holder']:null;
   const am=o.amateur?(o.l===0?[o.hype+Math.min(15,2.5*o.w),'WBSC amateur '+o.medal+' medallist'+(o.w?', unbeaten as a pro':', hasn\'t had a pro fight yet')]:[Math.round(o.hype*.3),'WBSC amateur '+o.medal+' medallist, no longer unbeaten']):null;
   const parts=[st,earned,am].filter(Boolean);return {v:parts.reduce((t,x)=>t+x[0],0),why:parts.map(x=>x[1]).join('; ')};}
@@ -754,6 +754,7 @@ function runCamp(x){const p=promo(),c=S.career,st=campState(x);if(!st.ok||c.mone
   const after=skillLevel(skillOf(x)),up=after!==before?' He\'s now at '+after+'!':'';
   if(Math.random()<CAMP_HURT){(p.resting=p.resting||[]).push(x.id);p.note='🤕 '+x.name+' got hurt sparring in camp. The work still counts, but he has to sit out your next card.'+up;}
   else p.note='🏋️ '+x.name+' finished training camp #'+x.camps+'.'+up;}
+const NEVER_OUT=new Set(['bg6']);   // the Postman always delivers: no fight-week withdrawals or weight misses
 const PROMO_FORGET=5,PROMO_FORGET_MAX=25,PROMO_PROSPECT_CONTRACT=6,PROMO_INJ=.05,PROMO_WEIGHT=.04,PROMO_PRESALE=.3;
 function randn(){return Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(2*Math.PI*Math.random());}
 function readSigma(){return .45-.35*promo().hype/100;}
@@ -777,7 +778,7 @@ function bookEvent(){
 function moveVenue(i){const p=promo(),b=p.booked,c=S.career,V=VENUES[i];if(!b||b.moved||i===b.venue||c.money<V.rent)return;
   c.money+=Math.round(b.rentPaid/2)-V.rent;b.lost=Math.round(b.rentPaid/2);b.from=b.venue;b.venue=i;b.rentPaid=V.rent;b.moved=true;}
 function goWeek(){const b=promo().booked;if(!b||b.stage!=='presale')return;b.issues=[];
-  b.card.forEach((ids,i)=>{for(let s=0;s<2;s++){const r=Math.random();
+  b.card.forEach((ids,i)=>{for(let s=0;s<2;s++){if(NEVER_OUT.has(ids[s]))continue;const r=Math.random();
     if(r<PROMO_INJ){b.issues.push({i,side:s,id:ids[s],type:'inj',why:['hurt his hand in sparring','tore a muscle in camp','came down with the flu','failed his pre-fight medical'][Math.floor(Math.random()*4)]});break;}
     if(r<PROMO_INJ+PROMO_WEIGHT){b.issues.push({i,side:s,id:ids[s],type:'weight',lb:(.6+Math.random()*2.8).toFixed(1)});break;}}});
   b.stage='week';}
@@ -1577,7 +1578,7 @@ function rankOf(p){
 }
 /* ---------- the division: background contenders who fill the top 20 ---------- */
 const BG_NAMES=['Marcus Delgado','Yuto Nakamura','Andre "Smooth" Ellis','Bilal Rahman','Sergio Castillo','Tommy Fitzgerald',
-  'Kwame Mensah','Dmitri Volkov','Jamal Hayes','Oscar Lindqvist','Ricky Santos','Nate "Nightshift" Carter','Hector Ibarra',
+  'Nii "The Postman" Lartey','Dmitri Volkov','Jamal Hayes','Oscar Lindqvist','Ricky Santos','Nate "Nightshift" Carter','Hector Ibarra',
   'Lee Min-jun','Femi Adeyemi','Chris Bowman','Abdul Karimov'];
 const BG=[1,2,3,5,6,7,8,10,11,12,14,15,16,17,18,19,20].map((r,i)=>{
   const w=Math.round(34-r*0.6+Math.random()*4),l=Math.floor(r/6+Math.random()*2),d=Math.random()<.3?1:0;
@@ -1681,6 +1682,11 @@ const PERSONA_USE=.75;
 // When style-limited fighters stop people, or get stopped, in background fights (rounds; 0 = last round).
 const BG_KO={banks:{win:[1,6],lose:[7,0]},salgado:{win:[1,6],lose:[7,0]},zhang:{win:[4,0],lose:[1,3]}};
 const PERSONA={
+  // Nii "The Postman" Lartey, from Bukom in Accra: never late, never misses weight, never pulls out. Always delivers.
+  bg6:{win:{ko:['{W} delivers again, stopping {L} in round {r}. "Right on time," says the Postman.','{W} drops {L} in round {r}. Bukom is dancing in the streets tonight.'],
+            dec:['{W} outworks {L} for every minute of every round, {sc}. Signed, sealed, delivered.','{W} beats {L} {sc}. He made weight to the ounce, again.']},
+       lose:{ko:['{W} stops {L} in round {r}. Return to sender: the Postman goes home early.'],
+             dec:['{W} edges {L}, {sc}. The Postman showed up on time, made weight, and still came up short.']}},
   kane:{win:{ko:['{W} makes it look easy against {L}, stopping him in round {r}. "Next," he says, before the ref has raised his hand.'],dec:['{W} cruises past {L}, {sc}. He looked bored by round 6.']},
         lose:{ko:['Shock: {W} stops {L} in round {r}! Kane\'s team blame "a bad weight cut".'],dec:['Shock: {W} outpoints {L}, {sc}! Kane\'s team blame "a bad weight cut".']}},
   whitlock:{win:{ko:['{W} actually stops {L}, in round {r}. It\'s his 4th knockout in 30 fights. His promoter calls it "a new era".'],dec:['{W} throws 1,100 punches and outpoints {L}, {sc}. About three of them hurt.']},
@@ -3124,6 +3130,7 @@ function applyGame(str){
   // background contenders: generated, so the saved copy is the truth (including any that became bookable)
   BG.forEach(x=>byId[x.id]=x);
   (g.bg||[]).forEach(x=>{if(byId[x.id])Object.assign(byId[x.id],x);});
+  BG.forEach((x,i)=>{if(i<BG_NAMES.length)x.name=BG_NAMES[i];});   // names come from the game, so a renamed fighter is renamed in old saves too
   // opponents: start from the code's list, bring in career facts, keep anyone only the save knows about
   const code=new Map(OPPONENTS.map(o=>[o.id,o]));
   OPPONENTS.forEach(o=>byId[o.id]=o);
